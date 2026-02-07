@@ -1,18 +1,24 @@
 import { createTheme } from '@mui/material/styles';
-import { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS } from './designSystem';
+import {
+  COLORS,
+  FONT_SIZE,
+  FONT_WEIGHT,
+  SPACING,
+  BORDER_RADIUS
+} from './designSystem';
 
 export const theme = createTheme({
   palette: {
-    mode: 'dark',
+    mode: 'light',
     primary: {
       main: COLORS.PRIMARY.MAIN,
       light: COLORS.PRIMARY.LIGHT,
       dark: COLORS.PRIMARY.DARK
     },
     secondary: {
-      main: COLORS.SECONDARY.MAIN,
-      light: COLORS.SECONDARY.LIGHT,
-      dark: COLORS.SECONDARY.DARK
+      main: '#f44336',
+      light: '#ef5350',
+      dark: '#c62828'
     },
     success: {
       main: COLORS.SUCCESS
@@ -27,8 +33,8 @@ export const theme = createTheme({
       main: COLORS.INFO
     },
     background: {
-      default: COLORS.BACKGROUND.DEFAULT,
-      paper: COLORS.BACKGROUND.PAPER
+      default: '#ffffff',
+      paper: '#f5f5f5'
     },
     text: {
       primary: COLORS.TEXT.PRIMARY,
@@ -37,14 +43,15 @@ export const theme = createTheme({
     }
   },
   typography: {
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    fontFamily:
+      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     fontSize: FONT_SIZE.BASE,
     fontWeightLight: FONT_WEIGHT.LIGHT,
     fontWeightRegular: FONT_WEIGHT.REGULAR,
     fontWeightMedium: FONT_WEIGHT.MEDIUM,
     fontWeightBold: FONT_WEIGHT.BOLD
   },
-  spacing: (factor: number) => SPACING.SM * factor,
+  spacing: (factor: number) => SPACING.XS * factor,
   shape: {
     borderRadius: BORDER_RADIUS.BASE
   },

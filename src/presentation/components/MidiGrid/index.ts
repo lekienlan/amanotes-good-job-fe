@@ -1,1 +1,0 @@
-export { MidiGrid } from './MidiGrid';

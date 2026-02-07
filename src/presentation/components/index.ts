@@ -1,7 +1,5 @@
-/**
- * Presentation Components Exports
- */
-
-export { MidiGrid } from './MidiGrid';
-export { PianoKeyboard } from './PianoKeyboard';
-export { PlaybackControls } from './PlaybackControls';
+export * from './Layout';
+export * from './SendKudosForm';
+export * from './KudosFeed';
+export * from './RewardsCatalog';
+export * from './AdminDashboard';

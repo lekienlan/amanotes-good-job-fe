@@ -1,6 +1,3 @@
-/**
- * Data Layer: Repository Exports
- */
-
-export { audioRepository, AudioRepository } from './audioRepository';
-export { useAudioRepository } from './useAudioRepository';
+export { useKudosRepository } from './useKudosRepository';
+export { useUsersRepository } from './useUsersRepository';
+export { useRewardsRepository } from './useRewardsRepository';

@@ -7,36 +7,35 @@
 export const COLORS = {
   // Primary colors
   PRIMARY: {
-    MAIN: '#4CAF50',
-    LIGHT: '#66BB6A',
-    DARK: '#2e7d32',
-    DARKER: '#1b5e20'
+    MAIN: '#2196F3',
+    LIGHT: '#64B5F6',
+    DARK: '#1976D2',
+    DARKER: '#0D47A1'
   },
-  
+
   // Secondary colors
   SECONDARY: {
-    MAIN: '#f44336',
-    LIGHT: '#ef5350',
-    DARK: '#c62828'
+    MAIN: '#BDBDBD',
+    LIGHT: '#E0E0E0',
+    DARK: '#9E9E9E'
   },
-  
+
   // Background colors
-  BACKGROUND: {
-    DEFAULT: '#121212',
-    PAPER: '#2a2a2a',
-    ELEVATED: '#1a1a1a',
-    HOVER: '#333333',
-    DISABLED: '#1f1f1f'
-  },
-  
-  // Text colors
   TEXT: {
+    PRIMARY: '#000000',
+    SECONDARY: '#666666',
+    DISABLED: '#999999',
+    HINT: '#757575'
+  },
+
+  // Text colors
+  BACKGROUND: {
     PRIMARY: '#ffffff',
     SECONDARY: '#999999',
     DISABLED: '#666666',
     HINT: '#757575'
   },
-  
+
   // Grid colors
   GRID: {
     BACKGROUND: {
@@ -48,20 +47,22 @@ export const COLORS = {
       EMPHASIS: '#444444'
     }
   },
-  
+
   // Note colors
   NOTE: {
     DEFAULT: '#4CAF50',
     SELECTED: '#66BB6A',
     BORDER: '#2e7d32'
   },
-  
+
   // Utility colors
   SUCCESS: '#4CAF50',
+  SUCCESS_LIGHT: '#e8f5e9',
   ERROR: '#f44336',
   WARNING: '#ff9800',
+  WARNING_LIGHT: '#fff3e0',
   INFO: '#2196f3',
-  
+
   // Grayscale
   GRAY: {
     50: '#fafafa',
@@ -80,10 +81,14 @@ export const COLORS = {
 // Font Size Tokens (in pixels)
 export const FONT_SIZE = {
   XS: 10,
+  SMALL: 11,
   SM: 11,
   BASE: 14,
+  MEDIUM: 14,
   MD: 16,
+  LARGE: 18,
   LG: 18,
+  XLARGE: 20,
   XL: 20,
   '2XL': 24,
   '3XL': 30,
@@ -112,16 +117,21 @@ export const FONT_WEIGHT = {
 // Spacing Tokens (in pixels)
 export const SPACING = {
   0: 0,
-  XS: 4,      // 0.5 * 8
-  SM: 8,      // 1 * 8
-  MD: 16,     // 2 * 8
-  LG: 24,     // 3 * 8
-  XL: 32,     // 4 * 8
-  '2XL': 40,  // 5 * 8
-  '3XL': 48,  // 6 * 8
-  '4XL': 64,  // 8 * 8
-  '5XL': 80,  // 10 * 8
-  '6XL': 96   // 12 * 8
+  XSMALL: 4,
+  XS: 4, // 0.5 * 8
+  SMALL: 8,
+  SM: 8, // 1 * 8
+  MEDIUM: 16,
+  MD: 16, // 2 * 8
+  LARGE: 24,
+  LG: 24, // 3 * 8
+  XLARGE: 32,
+  XL: 32, // 4 * 8
+  '2XL': 40, // 5 * 8
+  '3XL': 48, // 6 * 8
+  '4XL': 64, // 8 * 8
+  '5XL': 80, // 10 * 8
+  '6XL': 96 // 12 * 8
 } as const;
 
 // Border Radius Tokens (in pixels)
@@ -129,6 +139,7 @@ export const BORDER_RADIUS = {
   NONE: 0,
   SM: 2,
   BASE: 4,
+  MEDIUM: 6,
   MD: 6,
   LG: 8,
   XL: 12,
