@@ -1,35 +1,15 @@
-import { useState, useEffect } from 'react';
 import { Box, Typography, Paper, CircularProgress } from '@mui/material';
 import { useKudosRepository } from 'data/repositories';
-import { useUsersStore, useKudosStore } from 'data/store';
+import { useUsersStore } from 'data/store';
 import { CoreValuesChart } from './CoreValuesChart';
 import { Leaderboard } from './Leaderboard';
 import { SPACING, COLORS } from 'presentation/theme/designSystem';
 
 export const AdminDashboard = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const { getAllKudos } = useKudosRepository();
+  const { kudos, isKudosLoading } = useKudosRepository();
   const users = useUsersStore((state) => state.users);
-  const kudos = useKudosStore((state) => state.kudos);
-  const setKudos = useKudosStore((state) => state.setKudos);
 
-  useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      try {
-        const { data } = await getAllKudos();
-        setKudos(data);
-      } catch (error) {
-        console.error('Failed to load dashboard data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadData();
-  }, [getAllKudos, setKudos]);
-
-  if (isLoading) {
+  if (isKudosLoading && kudos.length === 0) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: SPACING.XLARGE }}>
         <CircularProgress />

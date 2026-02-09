@@ -4,8 +4,10 @@ export const STORAGE_KEYS = {
   REWARDS: 'peer-recognition-rewards',
   REDEMPTIONS: 'peer-recognition-redemptions',
   CURRENT_USER_ID: 'peer-recognition-current-user-id',
-  /** JWT access token for API auth. Store via localStorage.setItem(key, token); clear on logout. */
+  /** JWT access token for API auth. Store via localStorage; clear on logout. */
   ACCESS_TOKEN: 'peer-recognition-access-token',
+  /** JWT refresh token; clear on logout. */
+  REFRESH_TOKEN: 'peer-recognition-refresh-token',
 } as const;
 
 export const loadFromStorage = <T>(key: string, defaultValue: T): T => {

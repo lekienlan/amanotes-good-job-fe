@@ -1,35 +1,18 @@
 import type { RouteObject } from 'react-router-dom';
-import { AppLayout, ProtectedRoute } from 'presentation/components';
-import { HomePage, RewardsPage, AdminPage } from 'presentation/pages';
+import { AppLayout } from 'presentation/components';
+import { HomePage, LoginPage, RewardsPage, AdminPage } from 'presentation/pages';
 
 export const routes: RouteObject[] = [
   {
+    path: '/login',
+    element: <LoginPage />
+  },
+  {
     element: <AppLayout />,
     children: [
-      {
-        path: '/',
-        element: (
-          <ProtectedRoute>
-            <HomePage />
-          </ProtectedRoute>
-        )
-      },
-      {
-        path: '/rewards',
-        element: (
-          <ProtectedRoute>
-            <RewardsPage />
-          </ProtectedRoute>
-        )
-      },
-      {
-        path: '/admin',
-        element: (
-          <ProtectedRoute requiredRole="ADMIN">
-            <AdminPage />
-          </ProtectedRoute>
-        )
-      }
+      { path: '/', element: <HomePage /> },
+      { path: '/rewards', element: <RewardsPage /> },
+      { path: '/admin', element: <AdminPage /> }
     ]
   }
 ];

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import {
   Typography,
   Box,
@@ -10,31 +10,39 @@ import {
   Avatar,
   Menu,
   Divider,
-  IconButton
+  IconButton,
+  CircularProgress
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { useAuthStore, useUsersStore } from 'data/store';
 import { useUsersRepository } from 'data/repositories';
+import { useProtectedAuth } from 'domain/usecases';
 import { APP_CONFIG } from 'shared/constants/app';
 import { getDisplayName } from 'shared/utils/userHelpers';
+import { UserItem } from 'presentation/components/User';
 import { COLORS, SPACING, FONT_SIZE } from 'presentation/theme/designSystem';
 
 export const AppLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { loading, redirectTo } = useProtectedAuth();
   const { currentUser, login, loadCurrentUser } = useAuthStore();
   const { users, setUsers } = useUsersStore();
-  const { getAllUsers } = useUsersRepository();
+  const { users: apiUsers, refetchUsers } = useUsersRepository();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
-  // Load users on mount
+  // Fetch users from API on mount and sync to store
   useEffect(() => {
-    getAllUsers().then((loadedUsers) => {
-      setUsers(loadedUsers);
-      loadCurrentUser(loadedUsers);
-    });
-  }, [getAllUsers, setUsers, loadCurrentUser]);
+    refetchUsers();
+  }, [refetchUsers]);
+
+  useEffect(() => {
+    if (apiUsers?.length) {
+      setUsers(apiUsers);
+      loadCurrentUser(apiUsers);
+    }
+  }, [apiUsers, setUsers, loadCurrentUser]);
 
   const handleUserChange = (userId: string) => {
     const user = users.find((u) => u.id === userId);
@@ -57,6 +65,25 @@ export const AppLayout = () => {
   };
 
   const currentTab = location.pathname;
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh'
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (redirectTo) {
+    return <Navigate to={redirectTo} replace />;
+  }
 
   return (
     <Box
@@ -195,29 +222,9 @@ export const AppLayout = () => {
                       key={user.id}
                       onClick={() => handleUserChange(user.id ?? '')}
                       selected={user.id === currentUser.id}
-                      sx={{
-                        borderRadius: 1,
-                        mx: 0.5,
-                        display: 'flex',
-                        gap: 1.5
-                      }}
+                      sx={{ borderRadius: 1, mx: 0.5 }}
                     >
-                      <Avatar
-                        src={user.avatar}
-                        alt={getDisplayName(user)}
-                        sx={{ width: 28, height: 28 }}
-                      />
-                      <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                          {getDisplayName(user)}
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          sx={{ color: 'text.secondary' }}
-                        >
-                          {user.role}
-                        </Typography>
-                      </Box>
+                      <UserItem user={user} avatarSize={28} />
                     </MenuItem>
                   ))}
                 </Box>

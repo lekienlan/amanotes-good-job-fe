@@ -1,9 +1,9 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios';
 import { APP_CONFIG } from 'shared/constants/app';
-import { STORAGE_KEYS } from 'shared/utils/localStorage';
+import { useAuthStore } from 'data/store';
 
 /**
- * Shared axios instance for API calls. Attaches JWT from storage when present.
+ * Shared axios instance for API calls. Attaches JWT from auth store when present.
  */
 export const apiClient = axios.create({
   baseURL: APP_CONFIG.API_BASE_URL,
@@ -14,7 +14,7 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+  const token = useAuthStore.getState().accessToken;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

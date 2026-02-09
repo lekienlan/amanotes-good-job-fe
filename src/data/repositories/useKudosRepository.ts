@@ -1,13 +1,6 @@
 import { useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { v4 as uuidv4 } from 'uuid';
-import type { Kudo, Reaction, Pagination } from 'domain/models';
-import {
-  loadFromStorage,
-  saveToStorage,
-  STORAGE_KEYS
-} from 'shared/utils/localStorage';
-import { MOCK_KUDOS } from 'shared/mocks';
+import type { Kudo, Pagination } from 'domain/models';
 import { apiClient } from 'data/api/axios';
 
 const KUDOS_QUERY_KEY = ['kudos'] as const;
@@ -28,7 +21,6 @@ async function fetchKudosList(params?: {
 
 export const useKudosRepository = () => {
   const queryClient = useQueryClient();
-
   const {
     data: kudosResponse,
     isLoading: isKudosLoading,
@@ -39,34 +31,24 @@ export const useKudosRepository = () => {
     queryFn: () => fetchKudosList()
   });
 
-  const getAllKudos = useCallback(async (): Promise<{
-    data: Kudo[];
-    pagination: Pagination;
-  }> => {
-    return queryClient.fetchQuery({
-      queryKey: KUDOS_QUERY_KEY,
-      queryFn: () => fetchKudosList()
-    });
-  }, [queryClient]);
-
-  const sendKudo = useCallback(async (data: Partial<Kudo>): Promise<Kudo> => {
-    const newKudo: Kudo = {
-      id: uuidv4(),
-      sender_id: data.sender_id,
-      receiver_id: data.receiver_id,
-      points: data.points,
-      description: data.description,
-      core_value_id: data.core_value_id,
-      created_at: new Date().toISOString(),
-      reactions: []
-    };
-
-    const kudos = loadFromStorage<Kudo[]>(STORAGE_KEYS.KUDOS, MOCK_KUDOS);
-    kudos.unshift(newKudo);
-    saveToStorage(STORAGE_KEYS.KUDOS, kudos);
-
-    return newKudo;
-  }, []);
+  const sendKudo = useCallback(
+    async (data: Partial<Kudo>): Promise<Kudo> => {
+      const response = await apiClient.post<Kudo>('/api/v1/kudos', {
+        sender_id: data.sender_id,
+        receiver_id: data.receiver_id,
+        points: data.points,
+        description: data.description
+        // core_value_id: data.core_value_id
+      });
+      await queryClient.invalidateQueries({ queryKey: KUDOS_QUERY_KEY });
+      console.log(response.data);
+      if (!response.data) {
+        throw new Error('Failed to create kudo');
+      }
+      return response.data;
+    },
+    [queryClient]
+  );
 
   const addReaction = useCallback(
     async (
@@ -74,41 +56,22 @@ export const useKudosRepository = () => {
       emoji: string,
       userId: string
     ): Promise<Kudo | null> => {
-      const kudos = loadFromStorage<Kudo[]>(STORAGE_KEYS.KUDOS, MOCK_KUDOS);
-      const kudoIndex = kudos.findIndex((k) => k.id === kudoId);
-
-      if (kudoIndex === -1) return null;
-
-      const kudo = kudos[kudoIndex];
-      const reactions = kudo.reactions ?? [];
-
-      const existingReactionIndex = reactions.findIndex(
-        (r) => r.user_id === userId && r.emoji === emoji
-      );
-
-      if (existingReactionIndex >= 0) {
-        reactions.splice(existingReactionIndex, 1);
-      } else {
-        const newReaction: Reaction = {
-          id: uuidv4(),
-          kudo_id: kudoId,
-          user_id: userId,
-          emoji,
-          created_at: new Date().toISOString()
-        };
-        reactions.push(newReaction);
+      console.log(userId);
+      try {
+        const { data } = await apiClient.post<{ data: Kudo }>(
+          `/api/v1/kudos/${kudoId}/reactions`,
+          { emoji, user_id: 'acaa70fc-7a74-4ce5-96a3-d884da418a88' }
+        );
+        await queryClient.invalidateQueries({ queryKey: KUDOS_QUERY_KEY });
+        return data?.data ?? null;
+      } catch {
+        return null;
       }
-
-      kudos[kudoIndex] = { ...kudo, reactions };
-      saveToStorage(STORAGE_KEYS.KUDOS, kudos);
-
-      return kudos[kudoIndex];
     },
-    []
+    [queryClient]
   );
 
   return {
-    getAllKudos,
     sendKudo,
     addReaction,
     kudos: kudosResponse?.data ?? [],

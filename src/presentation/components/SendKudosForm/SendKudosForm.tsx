@@ -6,7 +6,11 @@ import {
   DialogActions,
   Button,
   TextField,
-  Autocomplete,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  ListSubheader,
   Slider,
   Box,
   Typography,
@@ -19,6 +23,7 @@ import { useSendKudo } from 'domain/usecases';
 import { MOCK_CORE_VALUES } from 'shared/mocks';
 import { KUDO_CONSTRAINTS } from 'shared/utils/validation';
 import { getDisplayName } from 'shared/utils/userHelpers';
+import { UserItem } from 'presentation/components/User';
 import { COLORS, SPACING, FONT_SIZE } from 'presentation/theme/designSystem';
 import type { User, CoreValue } from 'domain/models';
 
@@ -33,6 +38,8 @@ export const SendKudosForm = ({ open, onClose }: SendKudosFormProps) => {
   const { execute, isLoading, error } = useSendKudo();
 
   const [recipient, setRecipient] = useState<User | null>(null);
+  const [recipientSelectOpen, setRecipientSelectOpen] = useState(false);
+  const [recipientSearch, setRecipientSearch] = useState('');
   const [points, setPoints] = useState(25);
   const [description, setDescription] = useState('');
   const [selectedCoreValue, setSelectedCoreValue] = useState<CoreValue | null>(null);
@@ -41,9 +48,14 @@ export const SendKudosForm = ({ open, onClose }: SendKudosFormProps) => {
   // Get recipients (exclude current user)
   const availableRecipients = users.filter((u) => u.id !== currentUser?.id);
 
+  const filteredRecipients = availableRecipients.filter((u) =>
+    getDisplayName(u).toLowerCase().includes(recipientSearch.toLowerCase().trim())
+  );
+
   // Reset form
   const resetForm = () => {
     setRecipient(null);
+    setRecipientSearch('');
     setPoints(25);
     setDescription('');
     setSelectedCoreValue(null);
@@ -106,16 +118,55 @@ export const SendKudosForm = ({ open, onClose }: SendKudosFormProps) => {
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: SPACING.MEDIUM }}>
           {/* Recipient */}
-          <Autocomplete
-            value={recipient}
-            onChange={(_, newValue) => setRecipient(newValue)}
-            options={availableRecipients}
-            getOptionLabel={(option) => `${getDisplayName(option)} - ${option.department ?? ''}`}
-            renderInput={(params) => (
-              <TextField {...params} label="Recipient" required fullWidth />
-            )}
-            disabled={isLoading}
-          />
+          <FormControl fullWidth required disabled={isLoading}>
+            <InputLabel id="recipient-select-label">Recipient</InputLabel>
+            <Select
+              labelId="recipient-select-label"
+              id="recipient-select"
+              open={recipientSelectOpen}
+              onOpen={() => setRecipientSelectOpen(true)}
+              onClose={() => {
+                setRecipientSelectOpen(false);
+                setRecipientSearch('');
+              }}
+              value={recipient?.id ?? ''}
+              label="Recipient"
+              renderValue={() =>
+                recipient ? (
+                  <UserItem user={recipient} avatarSize={24} />
+                ) : (
+                  <Typography component="span" color="text.secondary">
+                    Select recipient
+                  </Typography>
+                )
+              }
+            >
+              <ListSubheader>
+                <TextField
+                  size="small"
+                  placeholder="Search..."
+                  fullWidth
+                  value={recipientSearch}
+                  onChange={(e) => setRecipientSearch(e.target.value)}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  autoFocus
+                  sx={{ mt: 0.5, mb: 0.5 }}
+                />
+              </ListSubheader>
+              {filteredRecipients.map((user) => (
+                <MenuItem
+                  key={user.id}
+                  value={user.id ?? ''}
+                  onClick={() => {
+                    setRecipient(user);
+                    setRecipientSelectOpen(false);
+                  }}
+                >
+                  <UserItem user={user} />
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
           {/* Points Slider */}
           <Box>
