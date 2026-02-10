@@ -2,10 +2,8 @@ import { useCallback } from 'react';
 import type { User } from 'domain/models';
 import { apiClient } from 'data/api/axios';
 import { useAuthStore } from 'data/store';
-import { APP_CONFIG } from 'shared/constants/app';
 
-const AUTH_GOOGLE_URL = `${APP_CONFIG.API_BASE_URL}/api/v1/auth/google`;
-const AUTH_TOKEN_PATH = '/api/v1/auth/token';
+const AUTH_LOGIN_PATH = '/api/v1/auth/login';
 const AUTH_ME_PATH = '/api/v1/auth/me';
 
 interface TokenResponse {
@@ -13,37 +11,38 @@ interface TokenResponse {
   refreshToken: string;
 }
 
+interface LoginResponse extends TokenResponse {
+  user: User;
+}
+
 export const useAuthRepository = () => {
   const setTokens = useAuthStore((s) => s.setTokens);
   const logout = useAuthStore((s) => s.logout);
 
-  const redirectToGoogleLogin = useCallback(() => {
-    window.location.href = AUTH_GOOGLE_URL;
-  }, []);
-
-  const exchangeCodeForTokens = useCallback(
-    async (code: string): Promise<void> => {
-      const res = await apiClient.post<TokenResponse | { data: TokenResponse }>(
-        AUTH_TOKEN_PATH,
-        { code }
+  const loginWithCredentials = useCallback(
+    async (user_name: string, password: string): Promise<LoginResponse> => {
+      const res = await apiClient.post<LoginResponse | { data: LoginResponse }>(
+        AUTH_LOGIN_PATH,
+        { user_name, password }
       );
       const body = res.data;
-      const tokens =
+      const data =
         body && typeof body === 'object' && 'data' in body
-          ? (body as { data: TokenResponse }).data
-          : (body as TokenResponse);
-      if (tokens?.accessToken && tokens?.refreshToken) {
-        setTokens(tokens.accessToken, tokens.refreshToken);
-      } else {
-        throw new Error('Invalid token response');
+          ? (body as { data: LoginResponse }).data
+          : (body as LoginResponse);
+
+      if (data?.accessToken && data?.refreshToken) {
+        setTokens(data.accessToken, data.refreshToken);
+        return data;
       }
+
+      throw new Error('Invalid login response');
     },
     [setTokens]
   );
 
   const fetchCurrentUser = useCallback(async (): Promise<User | null> => {
     const res = await apiClient.get<{ data?: User } | User>(AUTH_ME_PATH);
-    console.log('get me');
     const body = res.data;
     if (!body) return null;
     if (typeof body === 'object' && 'data' in body && body.data) {
@@ -53,8 +52,7 @@ export const useAuthRepository = () => {
   }, []);
 
   return {
-    redirectToGoogleLogin,
-    exchangeCodeForTokens,
+    loginWithCredentials,
     fetchCurrentUser,
     logout
   };

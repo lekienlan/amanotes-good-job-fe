@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import type { Role } from 'domain/models';
 import { useAuthStore } from 'data/store';
@@ -13,14 +13,22 @@ export const useProtectedAuth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { currentUser, isAuthenticated, accessToken, login } = useAuthStore();
-  const { fetchCurrentUser, redirectToGoogleLogin, exchangeCodeForTokens } =
-    useAuthRepository();
+  const { fetchCurrentUser, loginWithCredentials } = useAuthRepository();
   const { ensureCoreValuesLoaded } = useCoreValuesRepository();
 
   const [loading, setLoading] = useState(false);
 
   const pathname = location.pathname;
   const requiredRole = pathname === '/admin' ? ('ADMIN' as const) : undefined;
+
+  const loginWithPassword = useCallback(
+    async (user_name: string, password: string) => {
+      const { user } = await loginWithCredentials(user_name, password);
+      login(user);
+      await ensureCoreValuesLoaded();
+    },
+    [loginWithCredentials, login, ensureCoreValuesLoaded]
+  );
 
   useEffect(() => {
     if (!accessToken) return;
@@ -48,8 +56,7 @@ export const useProtectedAuth = () => {
     return {
       loading: false,
       redirectTo: '/login',
-      redirectToGoogleLogin,
-      exchangeCodeForTokens
+      loginWithPassword
     };
   }
 
@@ -57,8 +64,7 @@ export const useProtectedAuth = () => {
     return {
       loading: true,
       redirectTo: null,
-      redirectToGoogleLogin,
-      exchangeCodeForTokens
+      loginWithPassword
     };
   }
 
@@ -72,22 +78,19 @@ export const useProtectedAuth = () => {
       return {
         loading: false,
         redirectTo: '/' as const,
-        redirectToGoogleLogin,
-        exchangeCodeForTokens
+        loginWithPassword
       };
     }
     return {
       loading: false,
       redirectTo: null,
-      redirectToGoogleLogin,
-      exchangeCodeForTokens
+      loginWithPassword
     };
   }
 
   return {
     loading: false,
     redirectTo: '/login' as const,
-    redirectToGoogleLogin,
-    exchangeCodeForTokens
+    loginWithPassword
   };
 };

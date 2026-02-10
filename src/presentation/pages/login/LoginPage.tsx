@@ -1,76 +1,32 @@
-import { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Box, Button, CircularProgress, Typography } from '@mui/material';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Box, Button, TextField, Typography } from '@mui/material';
 import { useProtectedAuth } from 'domain/usecases';
 import { APP_CONFIG } from 'shared/constants/app';
 import { COLORS, SPACING } from 'presentation/theme/designSystem';
 
 export const LoginPage = () => {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { redirectToGoogleLogin, exchangeCodeForTokens } = useProtectedAuth();
-  const [loading, setLoading] = useState(false);
+  const { loginWithPassword } = useProtectedAuth();
+  const [userName, setUserName] = useState('');
+  const [password, setPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const code = searchParams.get('code');
-
-  useEffect(() => {
-    if (!code) return;
-    let cancelled = false;
-    queueMicrotask(() => {
-      if (!cancelled) {
-        setLoading(true);
-        setError(null);
-      }
-    });
-    const run = async () => {
-      try {
-        await exchangeCodeForTokens(code);
-        if (!cancelled) setTimeout(() => navigate('/', { replace: true }), 0);
-      } catch {
-        if (!cancelled) setError('Sign-in failed. Please try again.');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-    run();
-    return () => {
-      cancelled = true;
-    };
-  }, [code, exchangeCodeForTokens, navigate]);
-
-  if (code) {
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '100vh',
-          gap: SPACING.MD
-        }}
-      >
-        {loading ? (
-          <CircularProgress />
-        ) : (
-          <>
-            {error && (
-              <Typography color="error" sx={{ textAlign: 'center' }}>
-                {error}
-              </Typography>
-            )}
-            <Button
-              variant="contained"
-              onClick={() => navigate('/login', { replace: true })}
-            >
-              Back to login
-            </Button>
-          </>
-        )}
-      </Box>
-    );
-  }
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError(null);
+    setSubmitting(true);
+    try {
+      await loginWithPassword(userName, password);
+      navigate('/', { replace: true });
+    } catch {
+      // Reason: surface a simple, user-friendly error regardless of backend details.
+      setError('Invalid username or password. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <Box
@@ -80,27 +36,82 @@ export const LoginPage = () => {
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100vh',
-        gap: SPACING.XL,
-        bgcolor: COLORS.BACKGROUND.PRIMARY
+        bgcolor: COLORS.BACKGROUND.PRIMARY,
+        px: SPACING.LG
       }}
     >
-      <Typography
-        variant="h4"
-        sx={{ fontWeight: 600, color: COLORS.TEXT.PRIMARY }}
-      >
-        {APP_CONFIG.APP_NAME}
-      </Typography>
-      <Button
-        variant="contained"
-        size="large"
-        onClick={redirectToGoogleLogin}
+      <Box
         sx={{
-          bgcolor: COLORS.PRIMARY.MAIN,
-          '&:hover': { bgcolor: COLORS.PRIMARY.DARK }
+          width: '100%',
+          maxWidth: 420,
+          bgcolor: 'background.paper',
+          borderRadius: 3,
+          boxShadow: '0 10px 30px rgba(15, 23, 42, 0.12)',
+          p: SPACING.XL,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: SPACING.LG
         }}
       >
-        Sign in with Google
-      </Button>
+        <Box sx={{ textAlign: 'center', mb: SPACING.MD }}>
+          <Typography
+            variant="h4"
+            sx={{ fontWeight: 600, color: COLORS.TEXT.PRIMARY, mb: 0.5 }}
+          >
+            {APP_CONFIG.APP_NAME}
+          </Typography>
+          <Typography variant="body2" sx={{ color: COLORS.TEXT.SECONDARY }}>
+            Sign in with your username and password
+          </Typography>
+        </Box>
+
+        {error && (
+          <Typography
+            variant="body2"
+            sx={{ color: 'error.main', textAlign: 'center' }}
+          >
+            {error}
+          </Typography>
+        )}
+
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{ display: 'flex', flexDirection: 'column', gap: SPACING.MD }}
+        >
+          <TextField
+            label="Username"
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
+            autoComplete="username"
+            fullWidth
+            required
+          />
+          <TextField
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
+            fullWidth
+            required
+          />
+
+          <Button
+            type="submit"
+            variant="contained"
+            size="large"
+            disabled={submitting || !userName || !password}
+            sx={{
+              mt: SPACING.SM,
+              bgcolor: COLORS.PRIMARY.MAIN,
+              '&:hover': { bgcolor: COLORS.PRIMARY.DARK }
+            }}
+          >
+            {submitting ? 'Signing in...' : 'Sign in'}
+          </Button>
+        </Box>
+      </Box>
     </Box>
   );
 };
