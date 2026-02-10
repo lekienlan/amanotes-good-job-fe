@@ -1,13 +1,18 @@
+import { useEffect } from 'react';
 import { Box, Typography, Paper, CircularProgress } from '@mui/material';
-import { useKudosRepository } from 'data/repositories';
-import { useUsersStore } from 'data/store';
+import { useKudosFeed, useSyncUsers, useCoreValues } from 'domain/usecases';
 import { CoreValuesChart } from './CoreValuesChart';
 import { Leaderboard } from './Leaderboard';
-import { SPACING, COLORS } from 'presentation/theme/designSystem';
+import { SPACING, COLORS, BORDER_RADIUS, FONT_WEIGHT } from 'presentation/theme/designSystem';
 
 export const AdminDashboard = () => {
-  const { kudos, isKudosLoading } = useKudosRepository();
-  const users = useUsersStore((state) => state.users);
+  const { kudos, isLoading: isKudosLoading } = useKudosFeed();
+  const { users } = useSyncUsers();
+  const { coreValues, ensureCoreValuesLoaded } = useCoreValues();
+
+  useEffect(() => {
+    ensureCoreValuesLoaded();
+  }, [ensureCoreValuesLoaded]);
 
   if (isKudosLoading && kudos.length === 0) {
     return (
@@ -24,75 +29,62 @@ export const AdminDashboard = () => {
     ...kudos.map((k) => k.receiver_id),
   ]).size;
 
+  const stats = [
+    { value: totalKudos, label: 'Kudos sent', color: COLORS.PRIMARY.MAIN, bg: COLORS.PRIMARY.LIGHT },
+    { value: totalPointsGiven, label: 'Points given', color: COLORS.SUCCESS, bg: COLORS.SUCCESS_LIGHT },
+    { value: activeUsers, label: 'Active users', color: COLORS.WARNING, bg: COLORS.WARNING_LIGHT },
+  ];
+
   return (
-    <Box>
-      <Typography variant="h4" sx={{ fontWeight: 600, mb: SPACING.LARGE }}>
-        Admin Dashboard
+    <Box sx={{ maxWidth: 1400, mx: 'auto' }}>
+      <Typography variant="h5" sx={{ fontWeight: FONT_WEIGHT.SEMIBOLD, mb: SPACING.MEDIUM }}>
+        Dashboard
       </Typography>
 
-      {/* Summary Stats */}
-      <Box sx={{ display: 'flex', gap: 3, mb: SPACING.LARGE, flexWrap: 'wrap' }}>
-        <Box sx={{ flex: '1 1 300px' }}>
+      {/* Compact summary stats */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+          gap: SPACING.MEDIUM,
+          mb: SPACING.LARGE,
+        }}
+      >
+        {stats.map(({ value, label, color, bg }) => (
           <Paper
-            elevation={2}
+            key={label}
+            elevation={0}
             sx={{
-              p: SPACING.LARGE,
-              textAlign: 'center',
-              bgcolor: COLORS.PRIMARY.LIGHT,
+              p: SPACING.MEDIUM,
+              display: 'flex',
+              alignItems: 'center',
+              gap: SPACING.MEDIUM,
+              borderRadius: BORDER_RADIUS.LG,
+              border: `1px solid ${COLORS.GRAY[200]}`,
+              bgcolor: bg,
             }}
           >
-            <Typography variant="h3" sx={{ fontWeight: 700, color: COLORS.PRIMARY.MAIN }}>
-              {totalKudos}
+            <Typography variant="h4" sx={{ fontWeight: FONT_WEIGHT.BOLD, color, minWidth: 48 }}>
+              {value}
             </Typography>
-            <Typography variant="body1" sx={{ color: COLORS.TEXT.SECONDARY }}>
-              Total Kudos Sent
-            </Typography>
-          </Paper>
-        </Box>
-        <Box sx={{ flex: '1 1 300px' }}>
-          <Paper
-            elevation={2}
-            sx={{
-              p: SPACING.LARGE,
-              textAlign: 'center',
-              bgcolor: COLORS.SUCCESS_LIGHT,
-            }}
-          >
-            <Typography variant="h3" sx={{ fontWeight: 700, color: COLORS.SUCCESS }}>
-              {totalPointsGiven}
-            </Typography>
-            <Typography variant="body1" sx={{ color: COLORS.TEXT.SECONDARY }}>
-              Total Points Given
+            <Typography variant="body2" sx={{ color: COLORS.TEXT.SECONDARY, fontWeight: FONT_WEIGHT.MEDIUM }}>
+              {label}
             </Typography>
           </Paper>
-        </Box>
-        <Box sx={{ flex: '1 1 300px' }}>
-          <Paper
-            elevation={2}
-            sx={{
-              p: SPACING.LARGE,
-              textAlign: 'center',
-              bgcolor: COLORS.WARNING_LIGHT,
-            }}
-          >
-            <Typography variant="h3" sx={{ fontWeight: 700, color: COLORS.WARNING }}>
-              {activeUsers}
-            </Typography>
-            <Typography variant="body1" sx={{ color: COLORS.TEXT.SECONDARY }}>
-              Active Users
-            </Typography>
-          </Paper>
-        </Box>
+        ))}
       </Box>
 
-      {/* Charts */}
-      <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-        <Box sx={{ flex: '1 1 500px' }}>
-          <CoreValuesChart kudos={kudos} />
-        </Box>
-        <Box sx={{ flex: '1 1 500px' }}>
-          <Leaderboard users={users} kudos={kudos} />
-        </Box>
+      {/* Charts row */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' },
+          gap: SPACING.LARGE,
+          alignItems: 'start',
+        }}
+      >
+        <CoreValuesChart kudos={kudos} coreValues={coreValues} />
+        <Leaderboard users={users} kudos={kudos} />
       </Box>
     </Box>
   );

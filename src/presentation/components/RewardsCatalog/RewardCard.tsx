@@ -14,17 +14,16 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
-import type { Reward } from 'domain/models';
-import { useAuthStore } from 'data/store';
+import type { Reward, User } from 'domain/models';
 import { useRedeemReward } from 'domain/usecases';
 import { COLORS, SPACING, FONT_SIZE, BORDER_RADIUS } from 'presentation/theme/designSystem';
 
 interface RewardCardProps {
   reward: Reward;
+  currentUser?: User;
 }
 
-export const RewardCard = ({ reward }: RewardCardProps) => {
-  const currentUser = useAuthStore((state) => state.currentUser);
+export const RewardCard = ({ reward, currentUser }: RewardCardProps) => {
   const { execute, isRedeeming, error } = useRedeemReward();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);

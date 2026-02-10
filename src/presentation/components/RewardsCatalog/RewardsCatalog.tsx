@@ -1,32 +1,11 @@
-import { useState, useEffect } from 'react';
 import { Box, Typography, CircularProgress, Alert } from '@mui/material';
-import type { Reward } from 'domain/models';
-import { useRewardsRepository } from 'data/repositories';
-import { useAuthStore } from 'data/store';
+import { useRewardsCatalog, useCurrentUser } from 'domain/usecases';
 import { RewardCard } from './RewardCard';
 import { SPACING, COLORS } from 'presentation/theme/designSystem';
 
 export const RewardsCatalog = () => {
-  const [rewards, setRewards] = useState<Reward[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const currentUser = useAuthStore((state) => state.currentUser);
-  const { getAllRewards } = useRewardsRepository();
-
-  useEffect(() => {
-    const loadRewards = async () => {
-      setIsLoading(true);
-      try {
-        const loadedRewards = await getAllRewards();
-        setRewards(loadedRewards);
-      } catch (error) {
-        console.error('Failed to load rewards:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadRewards();
-  }, [getAllRewards]);
+  const { currentUser } = useCurrentUser();
+  const { rewards, isLoading } = useRewardsCatalog();
 
   if (!currentUser) {
     return (
@@ -76,7 +55,7 @@ export const RewardsCatalog = () => {
           }}
         >
           {rewards.map((reward) => (
-            <RewardCard key={reward.id} reward={reward} />
+            <RewardCard key={reward.id} reward={reward} currentUser={currentUser} />
           ))}
         </Box>
       )}

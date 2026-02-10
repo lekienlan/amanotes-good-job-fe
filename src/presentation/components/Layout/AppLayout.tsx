@@ -3,7 +3,6 @@ import { Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import {
   Typography,
   Box,
-  MenuItem,
   Tabs,
   Tab,
   Container,
@@ -14,9 +13,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import { useAuthStore, useUsersStore } from 'data/store';
-import { useUsersRepository } from 'data/repositories';
-import { useProtectedAuth } from 'domain/usecases';
+import { useProtectedAuth, useSyncUsers, useCurrentUser } from 'domain/usecases';
 import { APP_CONFIG } from 'shared/constants/app';
 import { getDisplayName } from 'shared/utils/userHelpers';
 import { UserItem } from 'presentation/components/User';
@@ -26,31 +23,14 @@ export const AppLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { loading, redirectTo } = useProtectedAuth();
-  const { currentUser, login, loadCurrentUser } = useAuthStore();
-  const { users, setUsers } = useUsersStore();
-  const { users: apiUsers, refetchUsers } = useUsersRepository();
+  const { currentUser } = useCurrentUser();
+  const { users, refetchUsers } = useSyncUsers();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
-  // Fetch users from API on mount and sync to store
   useEffect(() => {
     refetchUsers();
   }, [refetchUsers]);
-
-  useEffect(() => {
-    if (apiUsers?.length) {
-      setUsers(apiUsers);
-      loadCurrentUser(apiUsers);
-    }
-  }, [apiUsers, setUsers, loadCurrentUser]);
-
-  const handleUserChange = (userId: string) => {
-    const user = users.find((u) => u.id === userId);
-    if (user) {
-      login(user);
-      setAnchorEl(null);
-    }
-  };
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -205,27 +185,10 @@ export const AppLayout = () => {
                 <Divider sx={{ my: 1 }} />
 
                 <Box sx={{ px: 1, pb: 1 }}>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      px: 1,
-                      py: 0.5,
-                      display: 'block',
-                      color: 'text.secondary',
-                      fontWeight: 600
-                    }}
-                  >
-                    Switch User
-                  </Typography>
                   {users.map((user) => (
-                    <MenuItem
-                      key={user.id}
-                      onClick={() => handleUserChange(user.id ?? '')}
-                      selected={user.id === currentUser.id}
-                      sx={{ borderRadius: 1, mx: 0.5 }}
-                    >
+                    <Box key={user.id} sx={{ borderRadius: 1, mx: 0.5 }}>
                       <UserItem user={user} avatarSize={28} />
-                    </MenuItem>
+                    </Box>
                   ))}
                 </Box>
               </Menu>

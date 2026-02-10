@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Kudo, Pagination } from 'domain/models';
 import { apiClient } from 'data/api/axios';
 
-const KUDOS_QUERY_KEY = ['kudos'] as const;
+export const KUDOS_QUERY_KEY = ['kudos'] as const;
 
 async function fetchKudosList(params?: {
   page?: number;
@@ -37,8 +37,8 @@ export const useKudosRepository = () => {
         sender_id: data.sender_id,
         receiver_id: data.receiver_id,
         points: data.points,
-        description: data.description
-        // core_value_id: data.core_value_id
+        description: data.description,
+        core_value_id: data.core_value_id
       });
       await queryClient.invalidateQueries({ queryKey: KUDOS_QUERY_KEY });
       console.log(response.data);

@@ -18,9 +18,7 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
-import { useAuthStore, useUsersStore } from 'data/store';
-import { useSendKudo } from 'domain/usecases';
-import { MOCK_CORE_VALUES } from 'shared/mocks';
+import { useSendKudo, useCurrentUser, useSyncUsers, useCoreValues } from 'domain/usecases';
 import { KUDO_CONSTRAINTS } from 'shared/utils/validation';
 import { getDisplayName } from 'shared/utils/userHelpers';
 import { UserItem } from 'presentation/components/User';
@@ -33,8 +31,9 @@ interface SendKudosFormProps {
 }
 
 export const SendKudosForm = ({ open, onClose }: SendKudosFormProps) => {
-  const currentUser = useAuthStore((state) => state.currentUser);
-  const users = useUsersStore((state) => state.users);
+  const { currentUser } = useCurrentUser();
+  const { users } = useSyncUsers();
+  const { coreValues } = useCoreValues();
   const { execute, isLoading, error } = useSendKudo();
 
   const [recipient, setRecipient] = useState<User | null>(null);
@@ -203,7 +202,7 @@ export const SendKudosForm = ({ open, onClose }: SendKudosFormProps) => {
               Core Value *
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {MOCK_CORE_VALUES.map((value) => (
+              {coreValues.map((value) => (
                 <Chip
                   key={value.id}
                   label={`${value.emoji} ${value.name}`}

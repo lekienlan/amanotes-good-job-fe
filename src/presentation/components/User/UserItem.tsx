@@ -16,7 +16,7 @@ export const UserItem = ({ user, avatarSize = 28 }: UserItemProps) => (
     />
     <Box>
       <Typography variant="body2" sx={{ fontWeight: 500 }}>
-        {getDisplayName(user)}
+        {getDisplayName(user)} · {user.email}
       </Typography>
       <Typography variant="caption" sx={{ color: 'text.secondary' }}>
         {user.role}

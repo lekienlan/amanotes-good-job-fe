@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import type { Role } from 'domain/models';
 import { useAuthStore } from 'data/store';
-import { useAuthRepository } from 'data/repositories';
+import { useAuthRepository, useCoreValuesRepository } from 'data/repositories';
 
 /**
  * Auth usecase: guard protected routes (token + /me + role for /admin),
@@ -15,6 +15,7 @@ export const useProtectedAuth = () => {
   const { currentUser, isAuthenticated, accessToken, login } = useAuthStore();
   const { fetchCurrentUser, redirectToGoogleLogin, exchangeCodeForTokens } =
     useAuthRepository();
+  const { ensureCoreValuesLoaded } = useCoreValuesRepository();
 
   const [loading, setLoading] = useState(false);
 
@@ -30,6 +31,7 @@ export const useProtectedAuth = () => {
         console.log('user', user);
         if (user) {
           login(user);
+          await ensureCoreValuesLoaded();
         } else {
           navigate('/login', { replace: true });
         }
@@ -40,7 +42,7 @@ export const useProtectedAuth = () => {
       }
     };
     run();
-  }, [fetchCurrentUser, login, navigate, accessToken]);
+  }, [fetchCurrentUser, login, navigate, accessToken, ensureCoreValuesLoaded]);
 
   if (!accessToken) {
     return {

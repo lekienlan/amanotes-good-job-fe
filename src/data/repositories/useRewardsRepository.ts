@@ -1,60 +1,74 @@
 import { useCallback } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import type { Reward, Redemption } from 'domain/models';
-import { loadFromStorage, saveToStorage, STORAGE_KEYS } from 'shared/utils/localStorage';
-import { MOCK_REWARDS } from 'shared/mocks';
+import type { Reward, Redemption, Pagination } from 'domain/models';
+import {
+  loadFromStorage,
+  saveToStorage,
+  STORAGE_KEYS
+} from 'shared/utils/localStorage';
+import { apiClient } from 'data/api/axios';
+
+type RewardsApiResponse = {
+  data: Reward[];
+  pagination: Pagination;
+};
 
 export const useRewardsRepository = () => {
   const getAllRewards = useCallback(async (): Promise<Reward[]> => {
-    const rewards = loadFromStorage<Reward[]>(STORAGE_KEYS.REWARDS, MOCK_REWARDS);
-    return rewards.filter(r => r.is_active);
+    const { data } = await apiClient.get<RewardsApiResponse>('/api/v1/rewards');
+
+    const rewards = (data?.data ?? []).filter((reward) => reward.is_active);
+
+    // Persist latest rewards snapshot locally so redemption logic can update stock
+    saveToStorage(STORAGE_KEYS.REWARDS, rewards);
+
+    return rewards;
   }, []);
 
-  const getRedemptions = useCallback(async (userId?: string): Promise<Redemption[]> => {
-    const redemptions = loadFromStorage<Redemption[]>(STORAGE_KEYS.REDEMPTIONS, []);
-    if (userId) {
-      return redemptions.filter(r => r.user_id === userId);
-    }
-    return redemptions;
-  }, []);
+  const getRedemptions = useCallback(
+    async (userId?: string): Promise<Redemption[]> => {
+      const redemptions = loadFromStorage<Redemption[]>(
+        STORAGE_KEYS.REDEMPTIONS,
+        []
+      );
+      if (userId) {
+        return redemptions.filter((r) => r.user_id === userId);
+      }
+      return redemptions;
+    },
+    []
+  );
 
-  const redeemReward = useCallback(async (
-    userId: string,
-    rewardId: string,
-    pointsCost: number
-  ): Promise<Redemption> => {
-    // Create redemption record
-    const newRedemption: Redemption = {
-      id: uuidv4(),
-      user_id: userId,
-      reward_id: rewardId,
-      points_spent: pointsCost,
-      status: 'PENDING',
-      created_at: new Date().toISOString(),
-    };
+  const redeemReward = useCallback(
+    async (
+      userId: string,
+      rewardId: string,
+      pointsCost: number
+    ): Promise<Redemption> => {
+      const resp = await apiClient.post<Redemption>('/api/v1/redemptions', {
+        user_id: userId,
+        reward_id: rewardId,
+        points_spent: pointsCost
+      });
 
-    const redemptions = await getRedemptions();
-    redemptions.push(newRedemption);
-    saveToStorage(STORAGE_KEYS.REDEMPTIONS, redemptions);
+      if (!resp.data) {
+        throw new Error('Failed to redeem reward');
+      }
 
-    // Update reward stock
-    const rewards = await getAllRewards();
-    const rewardIndex = rewards.findIndex(r => r.id === rewardId);
-    
-    if (rewardIndex >= 0 && rewards[rewardIndex].stock !== undefined) {
-      rewards[rewardIndex] = {
-        ...rewards[rewardIndex],
-        stock: rewards[rewardIndex].stock! - 1,
-      };
-      saveToStorage(STORAGE_KEYS.REWARDS, rewards);
-    }
+      const existingRedemptions = loadFromStorage<Redemption[]>(
+        STORAGE_KEYS.REDEMPTIONS,
+        []
+      );
+      const updatedRedemptions = [...existingRedemptions, resp.data];
+      saveToStorage(STORAGE_KEYS.REDEMPTIONS, updatedRedemptions);
 
-    return newRedemption;
-  }, [getAllRewards, getRedemptions]);
+      return resp.data;
+    },
+    []
+  );
 
   return {
     getAllRewards,
     getRedemptions,
-    redeemReward,
+    redeemReward
   };
 };

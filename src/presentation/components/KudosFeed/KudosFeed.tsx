@@ -1,12 +1,18 @@
 import { Box, Typography, CircularProgress } from '@mui/material';
-import { useKudosFeed } from 'domain/usecases';
-import { useAuthStore } from 'data/store';
+import {
+  useKudosFeed,
+  useCurrentUser,
+  useSyncUsers,
+  useCoreValues,
+} from 'domain/usecases';
 import { KudoCard } from './KudoCard';
 import { SPACING, COLORS } from 'presentation/theme/designSystem';
 
 export const KudosFeed = () => {
   const { kudos, isLoading, toggleReaction } = useKudosFeed();
-  const currentUser = useAuthStore((state) => state.currentUser);
+  const { currentUser } = useCurrentUser();
+  const { users } = useSyncUsers();
+  const { coreValues } = useCoreValues();
 
   if (!currentUser) {
     return (
@@ -69,7 +75,14 @@ export const KudosFeed = () => {
         }}
       >
         {kudos.map((kudo) => (
-          <KudoCard key={kudo.id} kudo={kudo} onReaction={toggleReaction} />
+          <KudoCard
+            key={kudo.id}
+            kudo={kudo}
+            onReaction={toggleReaction}
+            currentUser={currentUser}
+            users={users}
+            coreValues={coreValues}
+          />
         ))}
       </Box>
     </Box>

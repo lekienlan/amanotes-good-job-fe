@@ -8,9 +8,7 @@ import {
   IconButton
 } from '@mui/material';
 import { formatDistanceToNow } from 'date-fns';
-import type { Kudo } from 'domain/models';
-import { useAuthStore, useUsersStore } from 'data/store';
-import { MOCK_CORE_VALUES } from 'shared/mocks';
+import type { CoreValue, Kudo, User } from 'domain/models';
 import { getDisplayName } from 'shared/utils/userHelpers';
 import { EMOJI_REACTIONS } from 'shared/constants/app';
 import {
@@ -24,15 +22,16 @@ import {
 interface KudoCardProps {
   kudo: Kudo;
   onReaction: (kudoId: string, emoji: string, userId: string) => void;
+  currentUser?: User;
+  users: User[];
+  coreValues: CoreValue[];
 }
 
-export const KudoCard = ({ kudo, onReaction }: KudoCardProps) => {
-  const currentUser = useAuthStore((state) => state.currentUser);
-  const users = useUsersStore((state) => state.users);
+export const KudoCard = ({ kudo, onReaction, currentUser, users, coreValues }: KudoCardProps) => {
 
   const sender = users.find((u) => u.id === kudo.sender_id);
   const receiver = users.find((u) => u.id === kudo.receiver_id);
-  const coreValue = MOCK_CORE_VALUES.find((cv) => cv.id === kudo.core_value_id);
+  const coreValue = coreValues.find((cv) => cv.id === kudo.core_value_id);
 
   // Group reactions by emoji
   const reactionCounts = new Map<
