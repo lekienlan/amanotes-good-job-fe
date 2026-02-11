@@ -189,16 +189,6 @@ export const BREAKPOINTS = {
   XL: 1920
 } as const;
 
-// Piano Roll Specific Tokens
-export const PIANO_ROLL = {
-  KEY_HEIGHT: 16,
-  TIME_SCALE: 20,
-  MAX_TIME: 300,
-  KEYBOARD_WIDTH: 80,
-  MIN_MIDI_NOTE: 48,
-  MAX_MIDI_NOTE: 83
-} as const;
-
 // Export all design tokens as a single object
 export const DESIGN_SYSTEM = {
   COLORS,
@@ -210,8 +200,7 @@ export const DESIGN_SYSTEM = {
   SHADOWS,
   Z_INDEX,
   TRANSITIONS,
-  BREAKPOINTS,
-  PIANO_ROLL
+  BREAKPOINTS
 } as const;
 
 // Type exports for TypeScript autocomplete
@@ -225,5 +214,4 @@ export type Shadows = typeof SHADOWS;
 export type ZIndex = typeof Z_INDEX;
 export type Transitions = typeof TRANSITIONS;
 export type Breakpoints = typeof BREAKPOINTS;
-export type PianoRoll = typeof PIANO_ROLL;
 export type DesignSystem = typeof DESIGN_SYSTEM;
