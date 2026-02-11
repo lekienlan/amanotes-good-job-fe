@@ -1,4 +1,4 @@
-## Peer Recognition System – How to run
+## Amanotes Good Job Frontend
 
 ### Prerequisites
 - Node.js and Yarn installed
