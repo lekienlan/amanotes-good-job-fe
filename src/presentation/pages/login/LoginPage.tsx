@@ -36,6 +36,7 @@ export const LoginPage = () => {
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100vh',
+        width: '100dvw',
         bgcolor: COLORS.BACKGROUND.PRIMARY,
         px: SPACING.LG
       }}
@@ -43,10 +44,7 @@ export const LoginPage = () => {
       <Box
         sx={{
           width: '100%',
-          maxWidth: 420,
-          bgcolor: 'background.paper',
           borderRadius: 3,
-          boxShadow: '0 10px 30px rgba(15, 23, 42, 0.12)',
           p: SPACING.XL,
           display: 'flex',
           flexDirection: 'column',
